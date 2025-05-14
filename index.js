@@ -43,13 +43,6 @@ app.post("/create-order",(req,res)=>{
         key_secret: process.env.RAZORPAY_API_SECRET
     });
 
-    // options = {
-    //     amount: 1000 * 100, // amount in the smallest currency unit
-    //     currency: "INR",
-    //     receipt: "receipt#1",
-    //     payment_capture: 1 // auto capture
-    // };
-
     const { amount, currency, receipt, notes } = req.body;
     const options = {
         amount: amount * 100, // amount in the smallest currency unit
@@ -72,7 +65,6 @@ app.post("/create-order",(req,res)=>{
 
 app.post("/payment-success",(req,res)=>{
 
-    console.log(req.body)
 
     const paymentId = req.body.razorpay_payment_id;
     const orderId = req.body.razorpay_order_id;
@@ -84,10 +76,6 @@ app.post("/payment-success",(req,res)=>{
         console.error("Missing required fields in request body");
         return res.status(400).send({ error: "Missing required fields" });
     }
-
-    console.log("Payment ID:", paymentId);
-    console.log("Order ID:", orderId);
-    console.log("Signature:", signature);
 
     // verify the signature
     var crypto = require("crypto");
@@ -141,4 +129,7 @@ app.post("/payment-success",(req,res)=>{
     }
 }
 )
+
+
 const PORT = 6969
+app.listen(PORT, () => {})

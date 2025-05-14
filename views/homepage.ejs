@@ -34,7 +34,6 @@
     </div> 
 
     <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md mt-6">
-        <h1 class="text-2xl font-bold text-center text-gray-800 mb-4" id="payment-gateway-title">Razorpay Payment Gateway</h1>
         <form id="payment-form" class="space-y-4">
             <button type="button" onclick="payNow()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" id="pay-now-button">
                 Pay Now
@@ -106,8 +105,14 @@
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
+
+        const rentP = <%= rentPerMonth %>; // Pass server-side value to client-side
+        const monthsToPayInput = document.getElementById('monthsToPay');
+
         async function payNow() {
-            const amount = <%= rentPerMonth * pendingMonths %>; // Server-side value
+            const monthsToPay = parseInt(monthsToPayInput.value) || 0; // Get user input
+            const amount = rentP * monthsToPay; // Calculate amount
+            console.log(amount);
             // Create order by calling the server endpoint
             const response = await fetch('/create-order', {
                 method: 'POST',
