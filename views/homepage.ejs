@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-4" id="welcome-message">Welcome to the Homepage</h1>
+        <div class="text-gray-600 space-y-2">
+            <p><span class="font-semibold" id="user-id-label">User ID:</span> <%= userId %></p>
+            <p><span class="font-semibold" id="message-label">Message:</span> <%= message %></p>
+            <p><span class="font-semibold" id="months-pending-label">Months Pending:</span> <%= pendingMonths %></p>
+            <p><span class="font-semibold" id="rent-per-month-label">Rent Per month:</span> ₹<%= rentPerMonth %></p>
+            <p><span class="font-semibold" id="total-payable-label">Total Payable:</span> ₹<%= rentPerMonth * pendingMonths %></p>
+            <p>
+                <span class="font-semibold" id="months-to-pay-label">Months you wish to Pay:</span>
+                <input type="number" id="monthsToPay" class="border border-gray-300 rounded-md p-2 w-full" min="1" max="<%= pendingMonths %>" placeholder="Enter months to pay" oninput="validateMonthsToPay(this)" />
+            </p>
+            <script>
+                function validateMonthsToPay(input) {
+                    const maxMonths = <%= pendingMonths %>;
+                    if (input.value > maxMonths) {
+                        input.value = maxMonths;
+                    } else if (input.value < 1) {
+                        input.value = 1;
+                    }
+                }
+            </script>
+        </div>
+    </div> 
+
+    <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md mt-6">
+        <h1 class="text-2xl font-bold text-center text-gray-800 mb-4" id="payment-gateway-title">Razorpay Payment Gateway</h1>
+        <form id="payment-form" class="space-y-4">
+            <button type="button" onclick="payNow()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" id="pay-now-button">
+                Pay Now
+            </button>
+        </form>
+    </div>
+
+    <div class="mt-6">
+        <label for="language-select" class="font-semibold">Select Language:</label>
+        <select id="language-select" class="border border-gray-300 rounded-md p-2">
+            <option value="en">English</option>
+            <option value="hi">Hindi</option>
+            <option value="te">Telugu</option>
+        </select>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                welcomeMessage: "Welcome to the Homepage",
+                userIdLabel: "User ID:",
+                messageLabel: "Message:",
+                monthsPendingLabel: "Months Pending:",
+                rentPerMonthLabel: "Rent Per month:",
+                totalPayableLabel: "Total Payable:",
+                monthsToPayLabel: "Months you wish to Pay:",
+                paymentGatewayTitle: "Razorpay Payment Gateway",
+                payNowButton: "Pay Now"
+            },
+            hi: {
+                welcomeMessage: "मुखपृष्ठ पर आपका स्वागत है",
+                userIdLabel: "उपयोगकर्ता आईडी:",
+                messageLabel: "संदेश:",
+                monthsPendingLabel: "बकाया महीने:",
+                rentPerMonthLabel: "प्रति माह किराया:",
+                totalPayableLabel: "कुल देय:",
+                monthsToPayLabel: "आप जितने महीने का भुगतान करना चाहते हैं:",
+                paymentGatewayTitle: "रज़ोरपे भुगतान गेटवे",
+                payNowButton: "अब भुगतान करें"
+            },
+            te: {
+                welcomeMessage: "హోమ్‌పేజీకి స్వాగతం",
+                userIdLabel: "వినియోగదారు ID:",
+                messageLabel: "సందేశం:",
+                monthsPendingLabel: "బకాయి నెలలు:",
+                rentPerMonthLabel: "ప్రతి నెల అద్దె:",
+                totalPayableLabel: "మొత్తం చెల్లించవలసినది:",
+                monthsToPayLabel: "మీరు చెల్లించాలనుకుంటున్న నెలలు:",
+                paymentGatewayTitle: "రేజర్‌పే చెల్లింపు గేట్‌వే",
+                payNowButton: "ఇప్పుడు చెల్లించండి"
+            }
+        };
+
+        document.getElementById('language-select').addEventListener('change', function () {
+            const selectedLanguage = this.value;
+            const translation = translations[selectedLanguage];
+
+            document.getElementById('welcome-message').textContent = translation.welcomeMessage;
+            document.getElementById('user-id-label').textContent = translation.userIdLabel;
+            document.getElementById('message-label').textContent = translation.messageLabel;
+            document.getElementById('months-pending-label').textContent = translation.monthsPendingLabel;
+            document.getElementById('rent-per-month-label').textContent = translation.rentPerMonthLabel;
+            document.getElementById('total-payable-label').textContent = translation.totalPayableLabel;
+            document.getElementById('months-to-pay-label').textContent = translation.monthsToPayLabel;
+            document.getElementById('payment-gateway-title').textContent = translation.paymentGatewayTitle;
+            document.getElementById('pay-now-button').textContent = translation.payNowButton;
+        });
+    </script>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        async function payNow() {
+            const amount = <%= rentPerMonth * pendingMonths %>; // Server-side value
+            // Create order by calling the server endpoint
+            const response = await fetch('/create-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ amount, currency: 'INR', receipt: 'receipt#1', notes: {} })
+            });
+
+            const order = await response.json();
+
+            // Open Razorpay Checkout
+            const options = {
+                key: '<%= process.env.RAZORPAY_KEY_ID %>', // Replace with your Razorpay key_id from .env
+                amount: amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+                currency: 'INR',
+                name: 'Acme Corp',
+                description: 'Test Transaction',
+                order_id: order.id, // This is the order_id created in the backend
+                callback_url: '/payment-success',
+                prefill: {
+                    name: 'Gaurav Kumar',
+                    email: 'gaurav.kumar@example.com',
+                    contact: '9999999999'
+                },
+                theme: {
+                    color: '#6366F1'
+                },
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+        }
+    </script>
+</body>
+</html>
