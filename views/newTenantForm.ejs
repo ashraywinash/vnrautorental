@@ -1,0 +1,101 @@
+
+<style>
+    form {
+        max-width: 500px;
+        margin: 40px auto;
+        padding: 24px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        font-family: Arial, sans-serif;
+    }
+    form div {
+        margin-bottom: 18px;
+        display: flex;
+        flex-direction: column;
+    }
+    label {
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #333;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="number"] {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+    input:focus {
+        border-color: #0078d7;
+        outline: none;
+    }
+    button[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        background: #0078d7;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    button[type="submit"]:hover {
+        background: #005fa3;
+    }
+    @media (max-width: 600px) {
+        form {
+            padding: 12px;
+        }
+        input, button {
+            font-size: 1rem;
+        }
+    }
+</style>
+<form action="" method="POST">
+    <div>
+        <label for="name">Tenant Name:</label>
+        <input type="text" id="name" name="name" required>
+    </div>
+    <div>
+        <label for="email">Tenant Email:</label>
+        <input type="email" id="email" name="email" required>
+    </div>
+    <div>
+        <label for="phone">Phone Number:</label>
+        <input type="text" id="phone" name="phone" required>
+    </div>
+    <div>
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address" required>
+    </div>
+    <div>
+        <label for="unitsLeased">Units Leased:</label>
+        <select id="unitsLeased" name="unitsLeased" multiple size="5" style="height:auto;">
+            <option value="1">Unit 1</option>
+            <option value="2">Unit 2</option>
+            <option value="3">Unit 3</option>
+            <option value="4">Unit 4</option>
+            <option value="5">Unit 5</option>
+            <!-- Add more options as needed -->
+        </select>
+        <small>Hold Ctrl (Windows) or Cmd (Mac) to select multiple units.</small>
+    </div>
+    <div>
+        <label for="advancePaid">Advance Paid:</label>
+        <input type="number" id="advancePaid" name="advancePaid" min="0" step="0.01" required>
+    </div>
+    <div>
+        <label for="aadhar">Aadhar Number:</label>
+        <input type="text" id="aadhar" name="aadhar" required>
+    </div>
+    <div>
+        <label for="pan">PAN Number:</label>
+        <input type="text" id="pan" name="pan" required>
+    </div>
+    <button type="submit">Create Tenant</button>
+</form>

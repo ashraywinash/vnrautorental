@@ -1,0 +1,103 @@
+<style>
+    .unit-form-container {
+        max-width: 420px;
+        margin: 40px auto;
+        background: #f9f9f9;
+        padding: 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        display: flex;
+        flex-direction: column;
+    }
+    .unit-form-container label {
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #222;
+    }
+    .unit-form-container input,
+    .unit-form-container textarea,
+    .unit-form-container select {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: border 0.2s;
+        margin-bottom: 16px;
+    }
+    .unit-form-container input:focus,
+    .unit-form-container textarea:focus,
+    .unit-form-container select:focus {
+        border-color: #0078d4;
+        outline: none;
+    }
+    .unit-form-container button {
+        width: 100%;
+        padding: 12px;
+        background: #0078d4;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .unit-form-container button:hover {
+        background: #005fa3;
+    }
+    @media (max-width: 600px) {
+        .unit-form-container {
+            padding: 12px;
+            max-width: 98vw;
+        }
+        .unit-form-container h2 {
+            font-size: 1.3rem;
+        }
+    }
+</style>
+
+<div class="unit-form-container">
+<form action="" method="POST">
+    <h2>Create New Unit</h2>
+    <div>
+        <label for="id">Unit ID:</label>
+        <input type="text" id="id" name="id" required>
+    </div>
+    <div>
+        <label for="unitType">Unit Type:</label>
+        <select id="unitType" name="unitType" required>
+            <option value="RES">Residential (RES)</option>
+            <option value="COM">Commercial (COM)</option>
+        </select>
+    </div>
+    <div>
+        <label for="size">Size:</label>
+        <select id="size" name="size" required>
+            <option value="1BHK">1BHK</option>
+            <option value="2BHK">2BHK</option>
+            <option value="SINGLE_ROOM">Single Room</option>
+            <option value="SHOP">Shop</option>
+            <option value="SMALL_SHOP">Small Shop</option>
+        </select>
+    </div>
+    <div>
+        <label for="monthsPaid">Months Paid:</label>
+        <input type="number" id="monthsPaid" name="monthsPaid" min="0" value="0" required>
+    </div>
+    <div>
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address" required>
+    </div>
+    <div>
+        <label for="electricityUSN">Electricity USN:</label>
+        <input type="text" id="electricityUSN" name="electricityUSN" required>
+    </div>
+    <div>
+        <label for="monthlyRent">Monthly Rent:</label>
+        <input type="number" id="monthlyRent" name="monthlyRent" min="0" required>
+    </div>
+    <div>
+        <button type="submit">Create Unit</button>
+    </div>
+</form>
+</div>

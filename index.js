@@ -2,6 +2,7 @@ const express = require("express")
 const mongoose = require("mongoose")
 const ejs = require("ejs")
 const Razorpay = require("razorpay");
+const adminRouter = require("./routes/adminRouter");
 require("dotenv").config();
 const app = express()
 app.set("view engine", "ejs")
@@ -15,15 +16,25 @@ app.use(express.json()) // Middleware to parse JSON request bodies
 
 //Database ends
 
+
+// Home page
 app.get("/",(req,res)=>{
     res.render("signin.ejs", { message: "Welcome to VNR Auto Rental!" })
 })
 
-app.post("/signin",(req,res)=>{
+
+// This route handles the sign-in form submission
+app.post("/homepage",(req,res)=>{
     userId = req.body.userId
+
+    //check if userId is valid from database
+    if(userId == null || userId == undefined || userId == ""){
+        return res.status(400).send({ error: "Invalid User ID" });
+    }
+
+
     // get number of months rent pending from database
     pendingMonths = 3 // get from database 
-    // calculate total amount pending 
     rentPerMonth = 7000 // get from database
 
     render_data = {
@@ -36,6 +47,8 @@ app.post("/signin",(req,res)=>{
     return res.render("homepage.ejs", render_data)
 })
 
+
+// This route handles the payment initiation
 app.post("/create-order",(req,res)=>{  
 
     var instance = new Razorpay({
@@ -63,6 +76,8 @@ app.post("/create-order",(req,res)=>{
     return res.status(500)
 })
 
+
+// This route handles the payment success callback from Razorpay
 app.post("/payment-success",(req,res)=>{
 
 
@@ -130,6 +145,8 @@ app.post("/payment-success",(req,res)=>{
 }
 )
 
+
+app.use("/admin", adminRouter);
 
 const PORT = 6969
 app.listen(PORT, () => {})
