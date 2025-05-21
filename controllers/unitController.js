@@ -27,16 +27,26 @@ const getUnitById = async (req, res) => {
 
 // Create a new unit
 const createUnit = async (req, res) => {
-    console.log(req.body);
+    console.log("Incoming unit data:", req.body);
     try {
-        const newUnit = new unit(req.body);
+        const currentYear = new Date().getFullYear().toString();
+
+        const newUnitData = {
+            ...req.body,
+            payments: {
+                [currentYear]: { monthsPaid: parseInt(req.body.monthsPaid) || 0 }
+            },
+        };
+
+        const newUnit = new unit(newUnitData);
         const savedUnit = await newUnit.save();
+
         res.status(201).json(savedUnit);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        console.error("Error creating unit:", error);
+        res.status(500).json({ message: 'Error creating unit', error });
     }
 };
-
 const createUnitForm = async (req, res) => {
     try {
         res.render('newUnitForm.ejs');
