@@ -6,30 +6,120 @@
     <title>Homepage</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+    <%  
+        const units = user.unitsLeased;
+        payments = units[0].payments; 
+        let monthsPaid = payments[payments.length - 1].monthsPaid;
+        let yearsPaid = payments[payments.length - 1].year;
 
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1; // JavaScript months are 0-based
+        const currentYear = now.getFullYear();
+
+        let pendingMonths = 0;
+        if (yearsPaid === currentYear) {
+            pendingMonths = currentMonth - monthsPaid;
+        } else if (yearsPaid < currentYear) {
+            pendingMonths = (12 - monthsPaid) + (currentMonth) + (currentYear - yearsPaid - 1) * 12;
+        } else {
+            pendingMonths = 0; // Future year, should not happen
+        }
+        if (pendingMonths < 0) pendingMonths = 0;
+
+        const phone = user.phone;
+        const name = user.name;
+        const rentPerMonth = user.monthlyRent;
+    %>
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
     <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-4" id="welcome-message">Welcome to the Homepage</h1>
         <div class="text-gray-600 space-y-2">
-            <p><span class="font-semibold" id="user-id-label">User ID:</span> <%= userId %></p>
-            <p><span class="font-semibold" id="message-label">Message:</span> <%= message %></p>
-            <p><span class="font-semibold" id="months-pending-label">Months Pending:</span> <%= pendingMonths %></p>
-            <p><span class="font-semibold" id="rent-per-month-label">Rent Per month:</span> ₹<%= rentPerMonth %></p>
-            <p><span class="font-semibold" id="total-payable-label">Total Payable:</span> ₹<%= rentPerMonth * pendingMonths %></p>
-            <p>
-                <span class="font-semibold" id="months-to-pay-label">Months you wish to Pay:</span>
-                <input type="number" id="monthsToPay" class="border border-gray-300 rounded-md p-2 w-full" min="1" max="<%= pendingMonths %>" placeholder="Enter months to pay" oninput="validateMonthsToPay(this)" />
-            </p>
-            <script>
-                function validateMonthsToPay(input) {
-                    const maxMonths = <%= pendingMonths %>;
-                    if (input.value > maxMonths) {
-                        input.value = maxMonths;
-                    } else if (input.value < 1) {
-                        input.value = 1;
-                    }
-                }
-            </script>
+            <p><span class="font-semibold" id="user-id-label">User ID:</span> <%= phone %></p>
+            <p><span class="font-semibold" id="message-label">Welcome :</span> <%= user.name %></p>
+            <div>
+                <span class="font-semibold">Units Leased:</span>
+                <ul class="list-none mt-4 space-y-6">
+                    <% units.forEach(function(unit, idx) { %>
+                        <li class="bg-gray-50 rounded-lg shadow p-4 border border-gray-200">
+                            <div class="flex flex-col gap-2">
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <div>
+                                        <span class="text-gray-700 font-medium">Unit Type:</span>
+                                        <span class="text-gray-500"><%= unit.unitType || 'N/A' %></span>
+                                        <span class="mx-2 text-gray-400">|</span>
+                                        <span class="text-gray-700 font-medium">Size:</span>
+                                        <span class="text-gray-500"><%= unit.size || 'N/A' %></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-700 font-medium">Unit Name:</span>
+                                        <span class="text-gray-500"><%= unit.id || unit.unitName || 'N/A' %></span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <div>
+                                        <span class="text-gray-700 font-medium" id="months-pending-label">Months Pending:</span>
+                                        <span class="text-red-600 font-semibold">
+                                            <% 
+                                                let payments = unit.payments || [];
+                                                let monthsPaid = payments.length ? payments[payments.length - 1].monthsPaid : 0;
+                                                let yearsPaid = payments.length ? payments[payments.length - 1].year : 0;
+                                                let now = new Date();
+                                                let currentMonth = now.getMonth() + 1;
+                                                let currentYear = now.getFullYear();
+                                                let pendingMonths = 0;
+                                                if (yearsPaid === currentYear) {
+                                                    pendingMonths = currentMonth - monthsPaid;
+                                                } else if (yearsPaid < currentYear) {
+                                                    pendingMonths = (12 - monthsPaid) + (currentMonth) + (currentYear - yearsPaid - 1) * 12;
+                                                } else {
+                                                    pendingMonths = 0;
+                                                }
+                                                if (pendingMonths < 0) pendingMonths = 0;
+                                            %>
+                                            <%= pendingMonths %>
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-700 font-medium" id="rent-per-month-label">Rent Per month:</span>
+                                        <span class="text-indigo-600 font-semibold">₹<%= unit.monthlyRent %></span>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="font-semibold text-gray-700" id="months-to-pay-label">Months you wish to Pay:</span>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <button type="button" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition" onclick="changeMonthsToPay(-1, this, <%= idx %>)">-</button>
+                                        <input type="number" id="monthsToPay-<%= idx %>" class="border border-gray-300 rounded-md p-2 w-20 text-center focus:ring-2 focus:ring-indigo-400" min="1" max="<%= pendingMonths %>" value="1" data-monthly-rent="<%= unit.monthlyRent %>" oninput="validateMonthsToPay(this)" />
+                                        <button type="button" class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition" onclick="changeMonthsToPay(1, this, <%= idx %>)">+</button>
+                                        <span class="ml-4 text-gray-600">You will pay: <span id="you-will-pay-<%= idx %>" class="font-semibold text-indigo-700"></span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <script>
+                                function changeMonthsToPay(delta, btn, idx) {
+                                    const input = document.getElementById('monthsToPay-' + idx);
+                                    const output = document.getElementById('you-will-pay-' + idx);
+                                    let value = parseInt(input.value) || 1;
+                                    const min = parseInt(input.min) || 1;
+                                    const max = parseInt(input.max) || 1;
+                                    const monthlyRent = parseInt(input.getAttribute('data-monthly-rent')) || 0;
+                                    value += delta;
+                                    if (value < min) value = min;
+                                    if (value > max) value = max;
+                                    input.value = value;
+                                    output.textContent = '₹' + (value * monthlyRent);
+                                }
+                                // Initialize the "You will pay" value on page load
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const input = document.getElementById('monthsToPay-<%= idx %>');
+                                    const output = document.getElementById('you-will-pay-<%= idx %>');
+                                    const monthlyRent = parseInt(input.getAttribute('data-monthly-rent')) || 0;
+                                    output.textContent = '₹' + (parseInt(input.value) * monthlyRent);
+                                });
+                            </script>
+                        </li>
+                    <% }); %>
+                </ul>
+            </div>
         </div>
     </div> 
 
@@ -40,79 +130,25 @@
             </button>
         </form>
     </div>
-
-    <div class="mt-6">
-        <label for="language-select" class="font-semibold">Select Language:</label>
-        <select id="language-select" class="border border-gray-300 rounded-md p-2">
-            <option value="en">English</option>
-            <option value="hi">Hindi</option>
-            <option value="te">Telugu</option>
-        </select>
-    </div>
-
-    <script>
-        const translations = {
-            en: {
-                welcomeMessage: "Welcome to the Homepage",
-                userIdLabel: "User ID:",
-                messageLabel: "Message:",
-                monthsPendingLabel: "Months Pending:",
-                rentPerMonthLabel: "Rent Per month:",
-                totalPayableLabel: "Total Payable:",
-                monthsToPayLabel: "Months you wish to Pay:",
-                paymentGatewayTitle: "Razorpay Payment Gateway",
-                payNowButton: "Pay Now"
-            },
-            hi: {
-                welcomeMessage: "मुखपृष्ठ पर आपका स्वागत है",
-                userIdLabel: "उपयोगकर्ता आईडी:",
-                messageLabel: "संदेश:",
-                monthsPendingLabel: "बकाया महीने:",
-                rentPerMonthLabel: "प्रति माह किराया:",
-                totalPayableLabel: "कुल देय:",
-                monthsToPayLabel: "आप जितने महीने का भुगतान करना चाहते हैं:",
-                paymentGatewayTitle: "रज़ोरपे भुगतान गेटवे",
-                payNowButton: "अब भुगतान करें"
-            },
-            te: {
-                welcomeMessage: "హోమ్‌పేజీకి స్వాగతం",
-                userIdLabel: "వినియోగదారు ID:",
-                messageLabel: "సందేశం:",
-                monthsPendingLabel: "బకాయి నెలలు:",
-                rentPerMonthLabel: "ప్రతి నెల అద్దె:",
-                totalPayableLabel: "మొత్తం చెల్లించవలసినది:",
-                monthsToPayLabel: "మీరు చెల్లించాలనుకుంటున్న నెలలు:",
-                paymentGatewayTitle: "రేజర్‌పే చెల్లింపు గేట్‌వే",
-                payNowButton: "ఇప్పుడు చెల్లించండి"
-            }
-        };
-
-        document.getElementById('language-select').addEventListener('change', function () {
-            const selectedLanguage = this.value;
-            const translation = translations[selectedLanguage];
-
-            document.getElementById('welcome-message').textContent = translation.welcomeMessage;
-            document.getElementById('user-id-label').textContent = translation.userIdLabel;
-            document.getElementById('message-label').textContent = translation.messageLabel;
-            document.getElementById('months-pending-label').textContent = translation.monthsPendingLabel;
-            document.getElementById('rent-per-month-label').textContent = translation.rentPerMonthLabel;
-            document.getElementById('total-payable-label').textContent = translation.totalPayableLabel;
-            document.getElementById('months-to-pay-label').textContent = translation.monthsToPayLabel;
-            document.getElementById('payment-gateway-title').textContent = translation.paymentGatewayTitle;
-            document.getElementById('pay-now-button').textContent = translation.payNowButton;
-        });
-    </script>
-
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
-
-        const rentP = <%= rentPerMonth %>; // Pass server-side value to client-side
-        const monthsToPayInput = document.getElementById('monthsToPay');
+        function totalToPay() {
+            let amount = 0;
+            for (let idx = 0; idx < <%= units.length %>; idx++) {
+                const output = document.getElementById('you-will-pay-' + idx);
+                if (output) {
+                    const amt = parseInt(output.innerText.replace('₹', '').replace(/,/g, '')) || 0;
+                    amount += amt;
+                }
+            }
+            amount = amount * 100; // Convert to paise for Razorpay
+            return amount;
+        }
 
         async function payNow() {
-            const monthsToPay = parseInt(monthsToPayInput.value) || 0; // Get user input
-            const amount = rentP * monthsToPay; // Calculate amount
-            console.log(amount);
+
+            const amount = totalToPay();
+
             // Create order by calling the server endpoint
             const response = await fetch('/create-order', {
                 method: 'POST',
@@ -129,14 +165,14 @@
                 key: '<%= process.env.RAZORPAY_KEY_ID %>', // Replace with your Razorpay key_id from .env
                 amount: amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
                 currency: 'INR',
-                name: 'Acme Corp',
-                description: 'Test Transaction',
+                name: 'M V Narsimha Rao',
+                description: 'Rent Payment by ' + name + ' to M V Narsimha Rao',
                 order_id: order.id, // This is the order_id created in the backend
-                callback_url: '/payment-success',
+                // callback_url: '/payment-success',
                 prefill: {
-                    name: 'Gaurav Kumar',
-                    email: 'gaurav.kumar@example.com',
-                    contact: '9999999999'
+                    name: name,
+                    email: '<%= user.email %>',
+                    contact: '<%= user.phone %>'
                 },
                 theme: {
                     color: '#6366F1'

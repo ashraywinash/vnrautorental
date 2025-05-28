@@ -76,12 +76,9 @@
     <div>
         <label for="unitsLeased">Units Leased:</label>
         <select id="unitsLeased" name="unitsLeased" multiple size="5" style="height:auto;">
-            <option value="1">Unit 1</option>
-            <option value="2">Unit 2</option>
-            <option value="3">Unit 3</option>
-            <option value="4">Unit 4</option>
-            <option value="5">Unit 5</option>
-            <!-- Add more options as needed -->
+        <% vacantUnits.forEach(function(unit) { %>
+            <option value="<%= unit._id %>"><%= unit.id %></option>
+        <% }); %>
         </select>
         <small>Hold Ctrl (Windows) or Cmd (Mac) to select multiple units.</small>
     </div>
@@ -97,5 +94,35 @@
         <label for="pan">PAN Number:</label>
         <input type="text" id="pan" name="pan" required>
     </div>
+    <div>
+        <label>Selected Units (JSON):</label>
+        <pre id="selectedUnitsJson" style="background:#eee;padding:8px;border-radius:4px;min-height:32px;"></pre>
+    </div>
+    <script>
+        // Display JSON of form data (except selected units, which is handled separately)
+        const form = document.querySelector('form');
+        const unitsSelect = document.getElementById('unitsLeased');
+        const selectedUnitsJson = document.getElementById('selectedUnitsJson');
+
+        function updateJsonDisplay() {
+            const data = {
+                name: form.name.value,
+                email: form.email.value,
+                phone: form.phone.value,
+                address: form.address.value,
+                unitsLeased: Array.from(unitsSelect.selectedOptions).map(opt => opt.text),
+                advancePaid: form.advancePaid.value,
+                aadhar: form.aadhar.value,
+                pan: form.pan.value
+            };
+            selectedUnitsJson.textContent = JSON.stringify(data, null, 2);
+        }
+
+        form.addEventListener('input', updateJsonDisplay);
+        unitsSelect.addEventListener('change', updateJsonDisplay);
+
+        // Initialize display on page load
+        updateJsonDisplay();
+    </script>
     <button type="submit">Create Tenant</button>
 </form>

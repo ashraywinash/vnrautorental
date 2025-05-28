@@ -27,21 +27,23 @@ const getUnitById = async (req, res) => {
 
 // Create a new unit
 const createUnit = async (req, res) => {
-    console.log("Incoming unit data:", req.body);
     try {
         const currentYear = new Date().getFullYear().toString();
 
         const newUnitData = {
             ...req.body,
-            payments: {
-                [currentYear]: { monthsPaid: parseInt(req.body.monthsPaid) || 0 }
-            },
+            payments: [
+            {
+                year: currentYear,
+                monthsPaid: parseInt(req.body.monthsPaid) || 0
+            }
+            ],
         };
 
         const newUnit = new unit(newUnitData);
         const savedUnit = await newUnit.save();
 
-        res.status(201).json(savedUnit);
+        res.redirect('/admin/unit');
     } catch (error) {
         console.error("Error creating unit:", error);
         res.status(500).json({ message: 'Error creating unit', error });
@@ -58,15 +60,28 @@ const createUnitForm = async (req, res) => {
 // Update a unit
 const updateUnit = async (req, res) => {
     try {
-        const updatedUnit = await Unit.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
+        const updatedUnit = await unit.findOneAndUpdate({id:req.body.id}, req.body, {
             runValidators: true,
         });
-        if (!updatedUnit) {
+        if (!updatedUnit) { 
             return res.status(404).json({ message: 'Unit not found' });
         }
-        res.status(200).json(updatedUnit);
+        res.status(201).json({ message: 'Unit updated successfully' });
     } catch (error) {
+        console.log(error.message)
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const updateUnitForm = async (req, res) => {
+    try {
+        const unitToUpdate = await unit.find({id:req.params.id});
+        if (!unitToUpdate) {
+            return res.status(404).json({ message: 'Unit not found' });
+        }
+        res.render('updateUnitForm.ejs', { unit: unitToUpdate[0] });
+    } catch (error) {
+        console.log("dkjnfjn")
         res.status(400).json({ message: error.message });
     }
 };
@@ -74,7 +89,7 @@ const updateUnit = async (req, res) => {
 // Delete a unit
 const deleteUnit = async (req, res) => {
     try {
-        const deletedUnit = await Unit.findByIdAndDelete(req.params.id);
+        const deletedUnit = await unit.findOneAndDelete({id : req.params.id});
         if (!deletedUnit) {
             return res.status(404).json({ message: 'Unit not found' });
         }
@@ -91,4 +106,5 @@ module.exports = {
     updateUnit,
     deleteUnit,
     createUnitForm,
+    updateUnitForm
 };

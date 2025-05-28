@@ -1,4 +1,5 @@
 const Tenant = require('../models/tenant.js'); // Assuming you have a Tenant model
+const Unit = require('../models/unit.js');
 
 // Get all tenants
 const getAllTenants = async (req, res) => {
@@ -25,19 +26,31 @@ const getTenantById = async (req, res) => {
 
 // Create a new tenant
 const createTenant = async (req, res) => {
-    console.log(req.body);
     try {
         const newTenant = new Tenant(req.body);
         const savedTenant = await newTenant.save();
+        // Update the status of the leased unit to 'LEASED'
+        if (req.body.unitsLeased) {
+            await Unit.updateMany(
+                { _id: { $in: req.body.unitsLeased } },
+                { $set: { status: 'OCCUPIED' } }
+            );
+        }
         res.status(201).json(savedTenant);
     } catch (error) {
+        console.log("Error creating tenant:");
         res.status(500).json({ message: 'Error creating tenant', error });
     }
 };
 
 const createTenantForm = async (req, res) => {
+    
     try {
-        res.render('newTenantForm.ejs');
+        const vacantUnits = await Unit.find({ status: 'VACANT' });
+        if (!vacantUnits || vacantUnits.length === 0) {
+            return res.status(404).json({ message: 'No vacant units available' });
+        }
+        res.render('newTenantForm.ejs', { vacantUnits });
     } catch (error) {
         res.status(500).json({ message: 'Error creating tenant', error });
     }
@@ -65,6 +78,13 @@ const deleteTenant = async (req, res) => {
         const deletedTenant = await Tenant.findByIdAndDelete(req.params.id);
         if (!deletedTenant) {
             return res.status(404).json({ message: 'Tenant not found' });
+        }
+        // Update the status of the previously leased units to 'VACANT'
+        if (deletedTenant.unitsLeased && deletedTenant.unitsLeased.length > 0) {
+            await Unit.updateMany(
+                { _id: { $in: deletedTenant.unitsLeased } },
+                { $set: { status: 'VACANT' } }
+            );
         }
         res.status(200).json({ message: 'Tenant deleted successfully' });
     } catch (error) {

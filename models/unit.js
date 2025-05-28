@@ -20,19 +20,19 @@ const unitSchema = mongoose.Schema({
         unique : true
     },
     
-    payments: {
-        type: Map,
-        of: {
-            monthsPaid: {
-                type: Number,
-                required: true,
-                default: 0,
-                max: 12
-            }
+    payments: [{
+        year: {
+            type: Number,
+            required: true
         },
-        default: {}
-    },
-    
+        monthsPaid: {
+            type: Number,
+            required: true,
+            default: 0,
+            max: 12
+        }
+    }],
+
     tenantsHistory: [
         {
             type: mongoose.Schema.Types.ObjectId,
@@ -59,64 +59,45 @@ const unitSchema = mongoose.Schema({
     },
 });
 
-function ensurePaymentsEntry(next) {
-    const years = Array.from(this.payments.keys()).sort();
-    let latestYear = new Date().getFullYear().toString();
-    if (years.length > 0) {
-        latestYear = years[years.length - 1];
-    }
-    const latestPayment = this.payments.get(latestYear);
-    if (!latestPayment) {
-        this.payments.set(latestYear, { monthsPaid: 0 });
-    } else if (latestPayment.monthsPaid >= 12) {
-        const nextYear = (parseInt(latestYear) + 1).toString();
-        if (!this.payments.has(nextYear)) {
-            this.payments.set(nextYear, { monthsPaid: 0 });
+function paymentsYearHandler(next) {
+    if (this.payments && this.payments.length > 0) {
+        const lastPayment = this.payments[this.payments.length - 1];
+        if (lastPayment.monthsPaid >= 12) {
+            const newYear = lastPayment.year + 1;
+            // Prevent duplicate year entry
+            const exists = this.payments.some(p => p.year === newYear);
+            if (!exists) {
+                this.payments.push({
+                    year: newYear,
+                    monthsPaid: 0
+                });
+            }
         }
     }
     next();
 }
 
-// For .save()
-unitSchema.pre('save', ensurePaymentsEntry);
-
-/**
- * Ensure payments entry logic for update queries.
- * This runs before findOneAndUpdate, updateOne, and update.
- */
-unitSchema.pre(['findOneAndUpdate', 'updateOne', 'update'], async function(next) {
-    console.log("Mongoose pre-update hook triggered"); // <-- This will log if the hook runs
-
-    // Only run if payments is being updated
+// Run on save and update
+unitSchema.pre('save', paymentsYearHandler);
+unitSchema.pre('findOneAndUpdate', function(next) {
+    // For update queries, 'this' is the query, so we need to get the update object
     const update = this.getUpdate();
-
-    // Handle $set and direct updates
-    let payments = update.payments || (update.$set && update.$set.payments);
-
-    if (payments && typeof payments === 'object') {
-        const years = Object.keys(payments).sort();
-        let latestYear = new Date().getFullYear().toString();
-        if (years.length > 0) {
-            latestYear = years[years.length - 1];
-        }
-        const latestPayment = payments[latestYear];
-        if (!latestPayment) {
-            payments[latestYear] = { monthsPaid: 0 };
-        } else if (latestPayment.monthsPaid >= 12) {
-            const nextYear = (parseInt(latestYear) + 1).toString();
-            if (!payments[nextYear]) {
-                payments[nextYear] = { monthsPaid: 0 };
+    if (update && update.payments && Array.isArray(update.payments) && update.payments.length > 0) {
+        const lastPayment = update.payments[update.payments.length - 1];
+        if (lastPayment.monthsPaid >= 12) {
+            const newYear = Number(lastPayment.year) + 1;
+            const exists = update.payments.some(p => p.year === newYear);
+            if (!exists) {
+                update.payments.push({
+                    year: newYear,
+                    monthsPaid: 0
+                });
             }
-        }
-        // If payments was under $set, update it there
-        if (update.$set && update.$set.payments) {
-            update.$set.payments = payments;
-        } else {
-            update.payments = payments;
         }
     }
     next();
 });
+
 
 const units = mongoose.model('units',unitSchema)
 

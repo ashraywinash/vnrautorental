@@ -16,6 +16,7 @@
                 <tr>
                     <th>Unit ID</th>
                     <th>Months Paid</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -23,13 +24,22 @@
                 <% units.forEach(function(unit) { %>
                     <tr>
                         <td><%= unit.id %></td>
-                        <td><%= unit.payments.get(new Date().getFullYear().toString())?.monthsPaid %></td>
+                        <td>
+                            <% if (unit.payments && unit.payments.length > 0) { %>
+                                <ul class="mb-0">
+                                    <% unit.payments.forEach(function(payment) { 
+                                        %>
+                                        <li><strong><%= payment.get('year') %></strong> :  <%= payment.get('monthsPaid') %></li><% 
+                                    }) %>
+                                </ul>
+                            <% } else { %>
+                                0
+                            <% } %>
+                        </td>
                         <td><%= unit.status %></td>
                         <td>
-                            <a href="/admin/unit/<%= unit.id %>/edit" class="btn btn-sm btn-secondary">Edit</a>
-                            <form action="/admin/unit/<%= unit.id %>?_method=DELETE" method="POST" style="display:inline;">
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this unit?');">Delete</button>
-                            </form>
+                            <a href="/admin/unit/edit/<%= unit.id %>"><button  class="btn btn-sm btn-secondary">Edit</button></a>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteUnit('<%= unit.id %>')">Delete</button>
                         </td>
                     </tr>
                 <% }) %>
@@ -39,5 +49,23 @@
         <div class="alert alert-info">No units found.</div>
     <% } %>
 </div>
-</body>
+<script>
+    function deleteUnit(unitId) {
+        if (confirm('Are you sure you want to delete this unit?')) {
+            fetch(`/admin/unit/${unitId}`, {
+                method: 'DELETE',
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    console.log(response);
+                    alert('Failed to delete unit.');
+                }
+            })
+            .catch(() => alert('Error deleting unit.'));
+        }
+    }
+    </script>
+    </body>
 </html>
